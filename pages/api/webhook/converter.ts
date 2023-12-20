@@ -23,21 +23,29 @@ export default async function Converter(req: NextApiRequest, res: NextApiRespons
 
     const method = req.method;
     const body = req.body;
-    const { commonLabels } = body;
-    const { webhookUrl } = commonLabels;
+    const { message } = body;
+
+    if (!message) {
+        res.status(400).json({ message: 'message is required' });
+        return;
+    }
+
+    const messageObj = JSON.parse(message);
+
+    const { webhookUrl } = messageObj;
 
     if (!webhookUrl) {
         res.status(400).json({ message: 'webhookUrl is required' });
         return;
     }
 
-    const alertPramas = {};
-    Object.keys(commonLabels).forEach(key => {
+    const alertParams = {};
+    Object.keys(messageObj).forEach(key => {
         if (!['alertname', 'instance', 'webhookUrl'].includes(key)) {
-            const jsonPath = commonLabels[key];
-            const jsonPathValue = readValue(jsonPath, body);
+            const jsonPath = messageObj[key];
+            const jsonPathValue = repalceContent(jsonPath, body);
             // @ts-ignore
-            alertPramas[key] = jsonPathValue;
+            alertParams[key] = jsonPathValue;
         }
     });
 
@@ -45,7 +53,7 @@ export default async function Converter(req: NextApiRequest, res: NextApiRespons
         const alertResponse = await fetch(webhookUrl, {
             method: method,
             headers: headers,
-            body: JSON.stringify(alertPramas),
+            body: JSON.stringify(alertParams),
         });
 
         if (!alertResponse.ok) {
@@ -63,11 +71,28 @@ function readValue(jsonPath: string, body: any) {
 
     jsonPath.split(',').forEach(path => {
         if (path.startsWith('$')) {
-            value += jp.query(body, path).map(value => value.toString());
+            value += jp.query(body, path).map(value => value.toString()).join(' ');
         } else {
             value += path;
         }
     });
 
     return value;
+}
+
+function repalceContent(content: string, body: any) {
+    // Define a regular expression pattern for JSONPath
+    const jsonpathPattern = /\$\.([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)*)/g;
+
+    // Use match method to extract all JSONPath expressions
+    const jsonpaths = content.match(jsonpathPattern) || [];
+    jsonpaths.forEach(jsonPath => {
+        const value = jp
+            .query(body, jsonPath)
+            .map(value => value.toString())
+            .join(' ');
+        content = content.replace(jsonPath, value);
+    });
+
+    return content;
 }

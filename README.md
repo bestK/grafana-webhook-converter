@@ -3,9 +3,26 @@
 The Grafana Webhook Converter is a project that allows users to customize their webhook requests. Users can tailor the request body to suit their preferences, with the `webhookUrl` being a mandatory field. Additionally, the project supports the use of JSONPath to reconstruct the structure from the original alert.
 
 
-![#](doc/custom.png)
+![#](doc/message.png)
+
+```json
+// define custom fields
+{
+"content": "$.status,测试,$.title,$.commonAnnotations.summary,$.externalURL",
+"msgType": "text",
+"name": "xxxx",
+"webhookUrl": "http://xxxxx"
+}
+
+```
 
 ### Usage
+
+Catch Grafana webhook data [https://requestcatcher.com](https://requestcatcher.com)
+
+![#](doc/catcher.png)
+
+
 Use this [endpoint](https://grafana-webhook-converter.vercel.app/api/webhook/converter) to replace your webhook.
 
 Or use the Cloudflare worker [_workder.js](./cf-worker/_workder.js)

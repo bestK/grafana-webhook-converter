@@ -29,21 +29,32 @@ async function handleRequest(request) {
             headers.append('authorization', authorization);
         }
 
-        const { commonLabels } = body;
-        const { webhookUrl } = commonLabels;
+        const { message } = body;
 
-        if (!webhookUrl) {
-            return new Response(JSON.stringify({ message: 'webhookUrl is required' }), {
+        if (!message) {
+            return new Response(JSON.stringify({ message: 'message is required' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
-
+    
+        const messageObj = JSON.parse(message);
+    
+        const { webhookUrl } = messageObj;
+    
+        if (!webhookUrl) {
+            return new Response(JSON.stringify({ message: messageObj }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+    
         const alertParams = {};
-        Object.keys(commonLabels).forEach(key => {
+        Object.keys(messageObj).forEach(key => {
             if (!['alertname', 'instance', 'webhookUrl'].includes(key)) {
-                const jsonPath = commonLabels[key];
-                const jsonPathValue = readValue(jsonPath, body);
+                const jsonPath = messageObj[key];
+                const jsonPathValue = repalceContent(jsonPath, body);
+                // @ts-ignore
                 alertParams[key] = jsonPathValue;
             }
         });
@@ -86,6 +97,24 @@ function readValue(jsonPath, body) {
 
     return value;
 }
+
+function repalceContent(content, body) {
+    // Define a regular expression pattern for JSONPath
+    const jsonpathPattern = /\$\.([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)*)/g;
+
+    // Use match method to extract all JSONPath expressions
+    const jsonpaths = content.match(jsonpathPattern) || [];
+    jsonpaths.forEach(jsonPath => {
+        const value = jsonpath
+            .query(body, jsonPath)
+            .map(value => value.toString())
+            .join(' ');
+        content = content.replace(jsonPath, value);
+    });
+
+    return content;
+}
+
 
 /*! jsonpath 1.1.1 */
 !(function (a) {
