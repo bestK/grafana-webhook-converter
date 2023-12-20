@@ -8,6 +8,8 @@ The Grafana Webhook Converter is a project that allows users to customize their 
 ### Usage
 Use this [endpoint](https://grafana-webhook-converter.vercel.app/api/webhook/converter) to replace your webhook.
 
+Or use the Cloudflare worker [_workder.js](./cf-worker/_workder.js)
+
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
