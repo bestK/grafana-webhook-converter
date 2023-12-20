@@ -35,7 +35,7 @@ export default async function Converter(req: NextApiRequest, res: NextApiRespons
     Object.keys(commonLabels).forEach(key => {
         if (!['alertname', 'instance', 'webhookUrl'].includes(key)) {
             const jsonPath = commonLabels[key];
-            const jsonPathValue = jsonPath.startsWith('$') ? readValue(jsonPath, body) : jsonPath;
+            const jsonPathValue = readValue(jsonPath, body);
             // @ts-ignore
             alertPramas[key] = jsonPathValue;
         }

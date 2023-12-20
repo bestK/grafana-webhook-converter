@@ -43,9 +43,7 @@ async function handleRequest(request) {
         Object.keys(commonLabels).forEach(key => {
             if (!['alertname', 'instance', 'webhookUrl'].includes(key)) {
                 const jsonPath = commonLabels[key];
-                const jsonPathValue = jsonPath.startsWith('$')
-                    ? readValue(jsonPath, body)
-                    : jsonPath;
+                const jsonPathValue = readValue(jsonPath, body);
                 alertParams[key] = jsonPathValue;
             }
         });
