@@ -23,49 +23,42 @@ export default async function Login(req: NextApiRequest, res: NextApiResponse) {
 
     const method = req.method;
     const body = req.body;
-    const alerts = body.alerts;
+    const { commonLabels } = body;
+    const { webhookUrl } = commonLabels;
 
-    alerts.forEach(async (alert: any) => {
-        const { webhookUrl } = alert.labels;
+    if (!webhookUrl) {
+        res.status(400).json({ message: 'webhookUrl is required' });
+        return;
+    }
 
-        if (!webhookUrl) {
-            res.status(400).json({ message: 'webhookUrl is required' });
-            return;
-        }
-
-        let alertPramas = {};
-
-        Object.keys(alert.labels).forEach(key => {
-            if (!['alertname', 'instance', 'webhookUrl'].includes(key)) {
-                const jsonPath = alert.labels[key];
-                const jsonPathValue = jsonPath.startsWith('$')
-                    ? jp
-                          .query(body, jsonPath)
-                          .map(value => value.toString())
-                          .join(', ')
-                    : jsonPath;
-                // @ts-ignore
-                alertPramas[key] = jsonPathValue;
-            }
-        });
-
-        try {
-            const alertResponse = await fetch(webhookUrl, {
-                method: method,
-                headers: headers,
-                body: JSON.stringify(alertPramas),
-            });
-
-            console.log(`alertResponse:${await alertResponse.text()}`);
-
-            if (!alertResponse.ok) {
-                throw new Error(`Failed to send alert: ${alertResponse.statusText}`);
-            }
-
-            res.status(200).json({ message: 'ok' });
-        } catch (error: any) {
-            console.error(error);
-            res.status(500).json({ message: `Internal Server Error: ${error.message}` });
+    const alertPramas = {};
+    Object.keys(commonLabels).forEach(key => {
+        if (!['alertname', 'instance', 'webhookUrl'].includes(key)) {
+            const jsonPath = commonLabels[key];
+            const jsonPathValue = jsonPath.startsWith('$')
+                ? jp
+                      .query(body, jsonPath)
+                      .map(value => value.toString())
+                      .join(', ')
+                : jsonPath;
+            // @ts-ignore
+            alertPramas[key] = jsonPathValue;
         }
     });
+
+    try {
+        const alertResponse = await fetch(webhookUrl, {
+            method: method,
+            headers: headers,
+            body: JSON.stringify(alertPramas),
+        });
+
+        if (!alertResponse.ok) {
+            throw new Error(`Failed to send alert: ${alertResponse.statusText}`);
+        }
+
+        res.status(200).json({ message: 'ok' });
+    } catch (error: any) {
+        res.status(500).json({ message: `Internal Server Error: ${error.message}` });
+    }
 }
