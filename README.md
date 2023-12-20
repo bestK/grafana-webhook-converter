@@ -10,6 +10,8 @@ Use this [endpoint](https://grafana-webhook-converter.vercel.app/api/webhook/con
 
 Or use the Cloudflare worker [_workder.js](./cf-worker/_workder.js)
 
+Support for multiple JSONPaths eg:`$.status,Im text,$.title,$.commonAnnotations.summary`
+
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 

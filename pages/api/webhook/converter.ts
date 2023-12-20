@@ -35,12 +35,7 @@ export default async function Converter(req: NextApiRequest, res: NextApiRespons
     Object.keys(commonLabels).forEach(key => {
         if (!['alertname', 'instance', 'webhookUrl'].includes(key)) {
             const jsonPath = commonLabels[key];
-            const jsonPathValue = jsonPath.startsWith('$')
-                ? jp
-                      .query(body, jsonPath)
-                      .map(value => value.toString())
-                      .join(', ')
-                : jsonPath;
+            const jsonPathValue = jsonPath.startsWith('$') ? readValue(jsonPath, body) : jsonPath;
             // @ts-ignore
             alertPramas[key] = jsonPathValue;
         }
@@ -61,4 +56,18 @@ export default async function Converter(req: NextApiRequest, res: NextApiRespons
     } catch (error: any) {
         res.status(500).json({ message: `Internal Server Error: ${error.message}` });
     }
+}
+
+function readValue(jsonPath: string, body: any) {
+    let value = '';
+
+    jsonPath.split(',').forEach(path => {
+        if (path.startsWith('$')) {
+            value += jp.query(body, path).map(value => value.toString());
+        } else {
+            value += path;
+        }
+    });
+
+    return value;
 }
