@@ -25,7 +25,7 @@ export default async function Login(req: NextApiRequest, res: NextApiResponse) {
     const body = req.body;
     const alerts = body.alerts;
 
-    alerts.forEach(async alert => {
+    alerts.forEach(async (alert: any) => {
         const { webhookUrl } = alert.labels;
 
         if (!webhookUrl) {
@@ -44,6 +44,7 @@ export default async function Login(req: NextApiRequest, res: NextApiResponse) {
                           .map(value => value.toString())
                           .join(', ')
                     : jsonPath;
+                // @ts-ignore
                 alertPramas[key] = jsonPathValue;
             }
         });
@@ -62,7 +63,7 @@ export default async function Login(req: NextApiRequest, res: NextApiResponse) {
             }
 
             res.status(200).json({ message: 'ok' });
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
             res.status(500).json({ message: `Internal Server Error: ${error.message}` });
         }
