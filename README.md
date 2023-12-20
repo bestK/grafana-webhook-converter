@@ -1,3 +1,11 @@
+# Grafana Webhook Converter
+
+The Grafana Webhook Converter is a project that allows users to customize their webhook requests. Users can tailor the request body to suit their preferences, with the `webhookUrl` being a mandatory field. Additionally, the project supports the use of JSONPath to reconstruct the structure from the original alert.
+
+
+![#](doc/custom.png)
+
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
